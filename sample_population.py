@@ -62,9 +62,22 @@ def replicate_population(avida_data):
     lineage = 0
     for genotype in avida_data:
         forager_types = genotype["Current Forager Types"]
+        if type(forager_types) != list:
+            forager_types = [forager_types]
 
-        if forager_types == -2 or (type(forager_types) == list and -2 in forager_types):
+        if -2 in forager_types or -1 in forager_types:
             continue
+
+        parent_ft = genotype["Parent forager type"]
+        if type(parent_ft) != list:
+            parent_ft = [parent_ft]
+
+        if -2 in parent_ft:
+            continue
+
+        genotype["Genome Sequence"] = genotype["Genome Sequence"].replace("Z", "3")
+        #if "Z" in genotype["Genome Sequence"]:
+        #    continue
 
         num_units = genotype["Number of currently living organisms"]
         for i in range(num_units): # for every copy of this genotype

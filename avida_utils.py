@@ -118,3 +118,83 @@ def format_line(header, data):
         ret += " "
 
     return ret.strip()
+
+def read_inst(fname):
+    ret = {}
+
+    i = 0
+    for line in open(fname):
+        if line[0] == "#":
+            continue
+
+        lexemes = line.strip().split()
+
+        if len(lexemes) < 2:
+            continue
+
+        if lexemes[0] != "INST":
+            continue
+
+        ret[lexemes[1]] = i
+        ret[i] = lexemes[1]
+        i += 1
+
+    return ret
+
+def get_symbol(op):
+    symbol = ""
+
+    if op == 255:
+        symbol += "_"
+    else:
+        idx = 0
+        offset = op / 62
+        if offset == 1:
+            symbol[0] += "+"
+        elif offset == 2:
+            symbol[0] += "-"
+        elif offset == 3:
+            symbol[0] += "~"
+        elif offset == 4:
+            symbol[0] += "?"
+
+        offset = op % 62
+
+        if offset < 26:
+            symbol += chr(offset + ord('a'));
+        elif offset < 52:
+            symbol += chr(offset - 26 + ord('A'));
+        elif offset < 62:
+            symbol += chr(offset - 52 + ord('0'));
+
+    return symbol
+
+def get_op(symbol):
+    op = 0
+
+    sym_char = symbol[0]
+    if sym_char == "+":
+        op = 62
+        sym_char = symbol[1]
+    elif sym_char == "-":
+        op = 124
+        sym_char = symbol[1]
+    elif sym_char == "~":
+        op = 186
+        sym_char = symbol[1]
+    elif sym_char == "?":
+        op = 248
+        sym_char = symbol[1]
+    elif sym_char == "_":
+        return 255
+
+    sym_char = ord(sym_char)
+    if sym_char >= ord('a') and sym_char <= ord('z'):
+        op += sym_char - ord('a')
+    elif sym_char >= ord('A') and sym_char <= ord('Z'):
+        op += sym_char - ord('A') + 26
+    elif sym_char >= ord('0') and sym_char <= ord('9'):
+        op += sym_char - ord('0') + 52
+
+    return op
+
