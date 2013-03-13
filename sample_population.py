@@ -65,7 +65,7 @@ def replicate_population(avida_data):
         if type(forager_types) != list:
             forager_types = [forager_types]
 
-        if -2 in forager_types or -1 in forager_types:
+        if -2 in forager_types:
             continue
 
         parent_ft = genotype["Parent forager type"]
