@@ -100,8 +100,8 @@ def replicate_population(avida_data):
 
 #Check to see if we have the right number of arguments
 #by default the first argument is the script name
-if len(sys.argv) != 2 and len(sys.argv) != 3:
-    print "USAGE: sample_population.py <population file> [max orgs]"
+if len(sys.argv) != 3 and len(sys.argv) != 4:
+    print "USAGE: sample_population.py <population file> <replicates> [max orgs]"
     sys.exit(1)     #we don't have the information we need, exit with an error value
 
 header, avida_data = avida_utils.read_avida_dat(sys.argv[1])  #Load the data from the file specified by the user
@@ -118,23 +118,28 @@ print "%s" % ("\n".join(headers))
 print
 
 num_output = len(population)
-if len(sys.argv) == 3:
-    num_output = int(sys.argv[2])
+written = 0
+replications = int(sys.argv[2])
+if len(sys.argv) == 4:
+    num_output = int(sys.argv[3])
 
 taken_cells = set()
-for i in range(num_output):
+while written < num_output:
     org = random.choice(population)
-    org["ID"] = i
-    org["Number of currently living organisms"] = 1
-    cell = org["Birth Cells"]
 
-    change = -1
-    while cell in taken_cells:
-        cell += change
-        if cell < 1:
-            cell = org["Birth Cells"]
-            change = 1
+    for i in range(min(replications, num_output - written)):
+        org["ID"] = written
+        org["Number of currently living organisms"] = 1
+        cell = org["Birth Cells"]
+        
+        change = -1
+        while cell in taken_cells:
+            cell += change
+            if cell < 1:
+                cell = org["Birth Cells"]
+                change = 1
 
-    org["Birth Cells"] = cell
+        org["Birth Cells"] = cell
 
-    print avida_utils.format_line(header, org)
+        print avida_utils.format_line(header, org)
+        written += 1
