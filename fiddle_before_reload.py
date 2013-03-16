@@ -37,9 +37,6 @@ import avida_utils #make sure the avida_utils.py file is in the same directory a
 # 27: Was Parent a Teacher
 # 28: Parent Merit
 
-def replicate_population(avida_data):
-    population = list()  #our population, which will contain one prey organism
-
 #Check to see if we have the right number of arguments
 #by default the first argument is the script name
 if len(sys.argv) != 2 and len(sys.argv) != 3:
@@ -47,7 +44,6 @@ if len(sys.argv) != 2 and len(sys.argv) != 3:
     sys.exit(1)     #we don't have the information we need, exit with an error value
 
 header, avida_data = avida_utils.read_avida_dat(sys.argv[1])  #Load the data from the file specified by the user
-population = replicate_population(avida_data)
 
 headers = list()
 for line in open(sys.argv[1]):

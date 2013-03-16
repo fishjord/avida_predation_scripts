@@ -101,6 +101,12 @@ def read_avida_dat(fname):
 
     return headers, avida_data
 
+def list_if_not(l):
+    if type(l) == list:
+        return l
+
+    return [l]
+
 def format_line(header, data):
     ret = ""
 
