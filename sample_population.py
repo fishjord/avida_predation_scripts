@@ -148,7 +148,7 @@ def write_high(avida_data, header):
         print avida_utils.format_line(header, org)
 
 def write_intermediate(avida_data, header, num_output):
-    replicates = 2
+    replicates = 3
     genotypes = {}
     for i in range(0, num_output, replicates):
         org = random.choice(avida_data)
