@@ -145,7 +145,7 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
     population snapshot was taken.  I've settled on randomly selecting one of the values from a living organism for every
     replicate.
     """
-    troublesome_attrs = ["Occupied Cell IDs", "Gestation (CPU) Cycle Offsets", "Lineage Label", "Current Group IDs", "Current Forager Types", "Birth Cells", "Current Avatar Cell Locations", "Avatar Birth Cell", "Parent forager type", "Was Parent a Teacher", "Parent Merit"]
+    troublesome_attrs = ["Occupied Cell IDs", "Gestation (CPU) Cycle Offsets", "Current Group IDs", "Current Forager Types", "Birth Cells", "Current Avatar Cell Locations", "Avatar Birth Cell", "Parent forager type", "Was Parent a Teacher", "Parent Merit"]
     for attr in troublesome_attrs:
         org[attr] = []
 
@@ -168,7 +168,6 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
 
 def write_pred(predators, header, taken_cells):
     org_id = len(taken_cells) + 1
-    pred_lineage = 9999 #magic number, but populations shouldn't get this high
     for predator in predators:
         print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells))
         org_id += 1
