@@ -80,7 +80,7 @@ def read_pred_only(fname):
         if type(parent_ft) != list:
             parent_ft = [parent_ft]
 
-        if -2 not in forager_types and -2 not in parent_ft:
+        if -2 not in forager_types or -2 not in parent_ft:
             continue
 
         cnt += genotype["Number of currently living organisms"]
@@ -152,12 +152,17 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
     for i in range(replicates):
         for attr in troublesome_attrs:
             v = random_pick(template[attr])
-            if "Birth Cells" == attr:
+            if "cell" in attr.lower():
                 #for cells we have to be careful not to duplicate values
-                org[attr].append(find_free_cell(taken_cells, v))
+                if attr not in taken_cells:
+                    taken_cells[attr] = set()
+
+                org[attr].append(find_free_cell(taken_cells[attr], v))
             else:
                 #for the other ones we (should) be fine with duplicate values
                 org[attr].append(v)
+
+    print >>sys.stderr, "moo", replicates, len(org["Birth Cells"])
 
     return org
 
@@ -165,21 +170,15 @@ def write_pred(predators, header, taken_cells):
     org_id = len(taken_cells) + 1
     pred_lineage = 9999 #magic number, but populations shouldn't get this high
     for predator in predators:
-        print avida_utils.format_line(header, create_org_from_template(predator, predator["Total number of organisms that ever existed"], org_id, taken_cells))
+        print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells))
         org_id += 1
 
 def write_high(avida_data, header):
-    taken_cells = set()
+    taken_cells = dict()
     for i in range(len(avida_data)):
         org = avida_data[i]
         org["Lineage Label"] = [i] * org["Number of currently living organisms"]
-        birth_cells = org["Birth Cells"]
-        if type(birth_cells) != list:
-            birth_cells = [birth_cells]
-
-        taken_cells.update(birth_cells)
-        
-        print avida_utils.format_line(header, org)
+        print avida_utils.format_line(header, create_org_from_template(org, org["Number of currently living organisms"], i, taken_cells))
 
     return taken_cells
 
@@ -194,7 +193,7 @@ def write_intermediate(avida_data, header, num_output):
 
         genotypes[genome]["cnt"] += min(replicates, num_output - i) # make sure we don't accidently create too many organisms
 
-    taken_cells = set()
+    taken_cells = dict()
     org_id = 1
     for genome in genotypes:
         genotype = genotypes[genome]
@@ -204,7 +203,8 @@ def write_intermediate(avida_data, header, num_output):
     return taken_cells
 
 def write_clone(avida_data, header, num_output):
-    taken_cells = set()
+    print >>sys.stderr, "Writing out %s clones" % num_output
+    taken_cells = dict()
     print avida_utils.format_line(header, create_org_from_template(random.choice(avida_data), num_output, 1, taken_cells))
     return taken_cells
 
@@ -212,7 +212,7 @@ def main():
     #Check to see if we have the right number of arguments
     #by default the first argument is the script name
     if (len(sys.argv) != 3 and len(sys.argv) != 4) or sys.argv[1] not in["high", "intermediate", "clone"]:
-        print >>sys.stderr, "USAGE: sample_population.py <high|intermediate|none> <population file> [pred_population]"
+        print >>sys.stderr, "USAGE: sample_population.py <high|intermediate|clone> <population file> [pred_population]"
         sys.exit(1)     #we don't have the information we need, exit with an error value
 
     sample_type = sys.argv[1]
@@ -231,11 +231,14 @@ def main():
 
     if len(sys.argv) == 4:
         header, predators, num_pred = read_pred_only(sys.argv[3])
+        print >>sys.stderr, "Writing predators: %s, %s" % ( len(predators), num_pred)
         write_pred(predators, header, taken_cells)
     else:
         num_pred = 0
 
     print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (num_prey, sys.argv[2], sys.argv[1], num_pred)
+    for taken in taken_cells:
+        print >>sys.stderr, taken, len(taken_cells[taken])
 
 
 if __name__ == "__main__":
