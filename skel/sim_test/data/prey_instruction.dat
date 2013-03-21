@@ -1,0 +1,67 @@
+# Prey org instruction execution data
+# Wed Mar 20 16:59:12 2013
+#  1: Update
+#  2: nop-A
+#  3: nop-B
+#  4: nop-C
+#  5: nop-D
+#  6: nop-E
+#  7: nop-F
+#  8: nop-G
+#  9: nop-H
+# 10: if-n-equ
+# 11: if-less
+# 12: mov-head
+# 13: jmp-head
+# 14: get-head
+# 15: set-flow
+# 16: search-seq-comp-s
+# 17: search-seq-direct-s
+# 18: shift-r
+# 19: shift-l
+# 20: inc
+# 21: dec
+# 22: push
+# 23: pop
+# 24: swap-stk
+# 25: swap
+# 26: pop-all
+# 27: push-all
+# 28: add
+# 29: sub
+# 30: nand
+# 31: fork-thread
+# 32: exit-thread
+# 33: id-thread
+# 34: IO
+# 35: repro
+# 36: wait-cond-equ
+# 37: wait-cond-less
+# 38: wait-cond-gtr
+# 39: if-not-0
+# 40: if-equ-0
+# 41: if-gtr-0
+# 42: if-less-0
+# 43: if-gtr-x
+# 44: if-equ-x
+# 45: move
+# 46: get-north-offset
+# 47: rotate-x
+# 48: rotate-org-id
+# 49: rotate-away-org-id
+# 50: set-forage-target
+# 51: get-forage-target
+# 52: look-ahead-intercept
+# 53: attack-prey
+# 54: attack-pred
+# 55: teach-offspring
+# 56: learn-parent
+# 57: nop-X
+# 58: scramble-registers
+# 59: zero
+# 60: one
+# 61: rand
+
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+1000 1633 53529 3994 2940 10 1502 3532 75294 87502 58031 174766 618 95093 5716 3371 695 14027 12905 8593 59142 163009 39164 8505 41262 19395 248994 4207 10541 48116 224833 1455 48438 399039 996 1160 6786 1404 38305 336480 7192 246722 100067 22658 184080 141588 120397 1 0 48937 69523 5968 0 0 92104 41441 122288 3622 231921 45474 177291 
+2000 958 37174 2154 4891 557 3491 769 80011 90929 62599 166008 1521 89639 12615 3874 842 16357 16341 12682 59337 144601 36415 11383 27398 20761 241549 5626 12073 38327 219306 1621 54616 389621 998 2235 10048 338 28756 308912 14341 239514 102160 29370 182349 136467 111675 0 0 54438 57676 14215 0 0 68237 40186 115202 5395 206975 48734 171988 

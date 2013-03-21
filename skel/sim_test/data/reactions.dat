@@ -1,0 +1,10 @@
+# Avida reaction data
+# Wed Mar 20 16:59:12 2013
+# First column gives the current update, all further columns give the number
+# of currently living organisms each reaction has affected.
+#  1: Update
+#  2: rfoodecho
+
+0 0 
+1000 998 
+2000 1000 
