@@ -162,8 +162,6 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
                 #for the other ones we (should) be fine with duplicate values
                 org[attr].append(v)
 
-    print >>sys.stderr, "moo", replicates, len(org["Birth Cells"])
-
     return org
 
 def write_pred(predators, header, taken_cells):
