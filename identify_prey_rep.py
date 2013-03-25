@@ -35,8 +35,7 @@ best_file = None
 
 # Structured Population Save
 # Fri Feb 15 18:31:22 2013
-#  1: ID
-#  2: Source
+#  1: ID#  2: Source
 #  3: Source Args
 #  4: Parent ID(s)
 #  5: Number of currently living organisms
@@ -66,7 +65,7 @@ best_file = None
 
 print >>sys.stderr, "file\tnum organisms\tnum predators\taverage looks per predator"
 for f in sys.argv[1:]:
-    inst_file = os.path.join(f, "predator_instruction.dat")
+    inst_file = os.path.join(f, "prey_instruction.dat")
     pop_file = os.path.join(f, "detail-2000000.spop")
 
     last_update = avida_utils.read_avida_dat(inst_file)[1][-1]  #Load the data from the file specified by the user
@@ -74,21 +73,20 @@ for f in sys.argv[1:]:
     avida_data = avida_utils.read_avida_dat(pop_file)[1]
 
     num_preds = 0
+    num_prey
     num_orgs = 0
 
     for genotype in avida_data:
-        forager_type = genotype["Current Forager Types"]
-        if type(forager_type) != list:
-            forager_type = [forager_type]
-
-        num_preds += forager_type.count(-2)
-
+        if "Z" in genotype["Genome Sequence"]:
+            num_red += genotype["Number of currently living organisms"]
+        else:
+            num_prey += genotype["Number of currently living organisms"]
         num_orgs += genotype["Number of currently living organisms"]
 
     look_counts = last_update["look-ahead-intercept"]
     ratio = float(look_counts) / num_preds
 
-    print >>sys.stderr, "%s\t%s\t%s\t%s" % (f, num_orgs, num_preds, float(look_counts) / num_preds)
+    print >>sys.stderr, "%s\t%s\t%s\t%s" % (f, num_orgs, num_prey, float(look_counts) / num_prey)
 
     if ratio > best_look_ratio:
         best_look_ratio = ratio

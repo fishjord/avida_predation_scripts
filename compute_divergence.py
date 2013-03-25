@@ -41,8 +41,21 @@ if len(sys.argv) < 3:
 # 27: Was Parent a Teacher
 # 28: Parent Merit
 
-def compute_ident(genome1, genome2):
-    aln1, aln2, score = alignment.global_alignment(genome1, genome2, 0, -1, -1)
+alignment_cache = dict()
+
+def compute_dist(genome1, genome2):
+    if genome1 in alignment_cache and genome2 in alignment_cache[genome1]:
+        aln1, aln2, score = alignment_cache[genome1][genome2]
+    else:
+        aln1, aln2, score = alignment.global_alignment(genome1, genome2, 0, -1, -1)
+        if genome1 not in alignment_cache:
+            alignment_cache[genome1] = dict()
+        if genome2 not in alignment_cache:
+            alignment_cache[genome2] = dict()
+
+        alignment_cache[genome1][genome2] = alignment_cache[genome2][genome1] = (aln1, aln2, score)
+    #print "ancestor genome:",aln1
+    #print "curr_genome:    ",aln2
 
     if len(aln1) != len(aln2):
         raise Exception("Genome lengths don't match")
@@ -61,6 +74,10 @@ def load_divergence(spop, seed_genome, only_lineages = None):
     for genotype in avida_data:
         num_units = genotype["Number of currently living organisms"]
         lineages = genotype["Lineage Label"]
+
+        if "Z" in genotype["Genome Sequence"]:
+            continue
+
         if type(lineages) != list:
             lineages = [lineages]
         for lineage in lineages:
@@ -68,8 +85,11 @@ def load_divergence(spop, seed_genome, only_lineages = None):
             if only_lineages != None and lineage not in only_lineages:
                 continue
 
-            ident = compute_ident(seed_genomes[lineage], genotype["Genome Sequence"])
-            organism_divergences.append(ident)
+            best_dist = 1
+            for seed_genome in seed_genomes[lineage]:
+                best_dist = min(compute_dist(seed_genome, genotype["Genome Sequence"]), best_dist)
+
+            organism_divergences.append(best_dist)
 
     return organism_divergences
 
@@ -93,7 +113,12 @@ for genotype in avida_data:
     if type(lineages) != list:
         lineages = [lineages]
     for lineage in lineages:
-        seed_genomes[lineage] = genotype["Genome Sequence"]
+        if lineage not in seed_genomes:
+            seed_genomes[lineage] = list()
+            seed_genomes[lineage].append(genotype["Genome Sequence"])
+        else:
+            print >>sys.stderr, "WARNING: multiple organisms have lineage %s" % lineage
+
 
 spop_data = []
 update_number_regex = re.compile("(.+/)*detail-(\d+).spop")
@@ -106,9 +131,12 @@ for f in args[1:]:
 
     divergences = load_divergence(f, seed_genomes, only_lineages)
 
-    spop_data.append((update, divergences))
+    spop_data.append((f, update, divergences))
 
-print "update\tnum_orgs\tmin_divergence\tmax_divergence\tavg_divergence\tsd"
+print "filename\tupdate\tnum_orgs\tmin_divergence\tmax_divergence\tavg_divergence\tsd"
 for output in sorted(spop_data, key=lambda x: x[0]):
-    update, divergences = output[0], output[1]
-    print "%s\t%s\t%s\t%s\t%s\t%s" % (update, len(divergences), min(divergences), max(divergences), numpy.average(divergences), numpy.std(divergences))
+    fname, update, divergences = output[0], output[1], output[2]
+    if len(divergences) == 0:
+        continue
+
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("\t".join([x for x in fname.split("_")]), update, len(divergences), min(divergences), max(divergences), numpy.average(divergences), numpy.std(divergences))
