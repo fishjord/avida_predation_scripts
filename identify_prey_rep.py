@@ -63,7 +63,7 @@ best_file = None
 # 27: Was Parent a Teacher
 # 28: Parent Merit
 
-print >>sys.stderr, "file\tnum organisms\tnum predators\taverage looks per predator"
+print >>sys.stderr, "file\tnum organisms\tnum prey\taverage looks per prey\taverage move prey"
 for f in sys.argv[1:]:
     inst_file = os.path.join(f, "prey_instruction.dat")
     pop_file = os.path.join(f, "detail-2000000.spop")
@@ -72,21 +72,22 @@ for f in sys.argv[1:]:
 
     avida_data = avida_utils.read_avida_dat(pop_file)[1]
 
-    num_preds = 0
-    num_prey
+    num_pred = 0
+    num_prey = 0
     num_orgs = 0
 
     for genotype in avida_data:
         if "Z" in genotype["Genome Sequence"]:
-            num_red += genotype["Number of currently living organisms"]
+            num_pred += genotype["Number of currently living organisms"]
         else:
             num_prey += genotype["Number of currently living organisms"]
         num_orgs += genotype["Number of currently living organisms"]
 
     look_counts = last_update["look-ahead-intercept"]
-    ratio = float(look_counts) / num_preds
+    move_counts = last_update["move"]
+    ratio = (float(look_counts) / num_prey + float(move_counts) / num_prey) / 2
 
-    print >>sys.stderr, "%s\t%s\t%s\t%s" % (f, num_orgs, num_prey, float(look_counts) / num_prey)
+    print >>sys.stderr, "%s\t%s\t%s\t%s\t%s" % (f, num_orgs, num_prey, float(look_counts) / num_prey, float(move_counts) / num_prey)
 
     if ratio > best_look_ratio:
         best_look_ratio = ratio
