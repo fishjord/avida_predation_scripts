@@ -1,7 +1,6 @@
 #include <Python.h>
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>
 #include <assert.h>
 
 struct Alignment {
