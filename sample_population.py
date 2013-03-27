@@ -58,7 +58,6 @@ file_header = """#filetype genotype_data
 # 26: Parent forager type
 # 27: Was Parent a Teacher
 # 28: Parent Merit
-
 """
 
 def random_pick(v):
@@ -165,7 +164,7 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
     return org
 
 def write_pred(predators, header, taken_cells):
-    org_id = len(taken_cells) + 1
+    org_id = len(taken_cells["Birth Cells"]) + 1
     for predator in predators:
         print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells))
         org_id += 1
