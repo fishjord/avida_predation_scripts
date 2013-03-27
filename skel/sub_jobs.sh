@@ -4,7 +4,7 @@ num_replicates=1
 updates=1000
 wd=$(cd `dirname $0` &>/dev/null; pwd; cd - &>/dev/null)
 
-echo "Submitting $num_replicates replicates of $update update simulations with working directory $wd"
+echo "Submitting $num_replicates replicates of $updates update simulations with working directory $wd"
 
 for i in `seq $num_replicates`
 do
