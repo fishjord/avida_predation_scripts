@@ -131,7 +131,7 @@ def find_free_cell(taken_cells, seed):
 
     return cell
 
-def create_org_from_template(template, replicates, org_id, taken_cells):
+def create_org_from_template(template, replicates, org_id, taken_cells, pred=False):
     org = copy.deepcopy(template)
     org["ID"] = org_id
     org["Number of currently living organisms"] = replicates
@@ -151,7 +151,17 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
     for i in range(replicates):
         for attr in troublesome_attrs:
             v = random_pick(template[attr])
-            if "cell" in attr.lower():
+            if attr == "Current Forager Types":
+                if pred:
+                    org[attr].append(-2)
+                else:
+                    org[attr].append(0)
+            elif attr == "Parent forager type":
+                if pred:
+                    org[attr].append(-2)
+                else:
+                    org[attr].append(0)
+            elif "cell" in attr.lower():
                 #for cells we have to be careful not to duplicate values
                 if attr not in taken_cells:
                     taken_cells[attr] = set()
@@ -166,7 +176,7 @@ def create_org_from_template(template, replicates, org_id, taken_cells):
 def write_pred(predators, header, taken_cells):
     org_id = len(taken_cells["Birth Cells"]) + 1
     for predator in predators:
-        print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells))
+        print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells, pred=True))
         org_id += 1
 
 def write_high(avida_data, header):
@@ -178,8 +188,7 @@ def write_high(avida_data, header):
 
     return taken_cells
 
-def write_intermediate(avida_data, header, num_output):
-    replicates = 3
+def write_intermediate(avida_data, header, num_output, replicates):
     genotypes = {}
     for i in range(0, num_output, replicates):
         org = random.choice(avida_data)
@@ -207,7 +216,7 @@ def write_clone(avida_data, header, num_output):
 def main():
     #Check to see if we have the right number of arguments
     #by default the first argument is the script name
-    if (len(sys.argv) != 3 and len(sys.argv) != 4) or sys.argv[1] not in["high", "intermediate", "clone"]:
+    if (len(sys.argv) != 3 and len(sys.argv) != 4) or (sys.argv[1] not in["high", "intermediate", "clone"] and not sys.argv[1].startswith("intermediate:")):
         print >>sys.stderr, "USAGE: sample_population.py <high|intermediate|clone> <population file> [pred_population]"
         sys.exit(1)     #we don't have the information we need, exit with an error value
 
@@ -218,8 +227,11 @@ def main():
 
     if sample_type == "high":
         taken_cells = write_high(avida_data, header)
-    elif sample_type == "intermediate":
-        taken_cells = write_intermediate(avida_data, header, num_prey)
+    elif sample_type.startswith("intermediate"):
+        replicates = 3
+        if ":" in sample_type:
+            replicates = int(sample_type.split(":")[-1])
+        taken_cells = write_intermediate(avida_data, header, num_prey, replicates)
     elif sample_type == "clone":
         taken_cells = write_clone(avida_data, header, num_prey)
     else:
