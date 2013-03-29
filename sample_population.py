@@ -23,6 +23,7 @@ import sys
 import random
 import copy
 from avida_utils import list_if_not
+import argparse
 import avida_utils #make sure the avida_utils.py file is in the same directory as this script
                    #you can read that file, but it does contain some advanced python constructs
 
@@ -214,37 +215,43 @@ def write_clone(avida_data, header, num_output):
     return taken_cells
 
 def main():
-    #Check to see if we have the right number of arguments
-    #by default the first argument is the script name
-    if (len(sys.argv) != 3 and len(sys.argv) != 4) or (sys.argv[1] not in["high", "intermediate", "clone"] and not sys.argv[1].startswith("intermediate:")):
-        print >>sys.stderr, "USAGE: sample_population.py <high|intermediate|clone> <population file> [pred_population]"
-        sys.exit(1)     #we don't have the information we need, exit with an error value
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--random-seed", dest="seed", help="Set the random number seed", default=0, type=int)
+    parser.add_argument("--replicates", dest="replicates", help="Set the random number of replicates for the intermediate mode", default=55, type=int)
+    parser.add_argument("--predators", dest="predators", help="Load predators from this spop")
+    parser.add_argument("mode", help="Selection mode", choices=set(["high", "intermediate", "clone"]))
+    parser.add_argument("seed_population")
 
-    sample_type = sys.argv[1]
-    header, avida_data, num_prey = read_and_tweakspop(sys.argv[2])  #Load the data from the file specified by the user    
+    args = parser.parse_args()
+
+    if args.seed:
+        print >>sys.stderr, "Setting random seed to %s" % args.seed
+        random.seed(args.seed)
+
+    sample_type = args.mode
+    header, avida_data, num_prey = read_and_tweakspop(args.seed_population)  #Load the data from the file specified by the user    
 
     print file_header
 
     if sample_type == "high":
         taken_cells = write_high(avida_data, header)
     elif sample_type.startswith("intermediate"):
-        replicates = 3
-        if ":" in sample_type:
-            replicates = int(sample_type.split(":")[-1])
+        replicates = args.replicates
+        print >>sys.stderr, "Intermediate population replicate number: %d" % args.replicates
         taken_cells = write_intermediate(avida_data, header, num_prey, replicates)
     elif sample_type == "clone":
         taken_cells = write_clone(avida_data, header, num_prey)
     else:
         raise Exception("Unknown sample type '%s'" % sample_type)
 
-    if len(sys.argv) == 4:
-        header, predators, num_pred = read_pred_only(sys.argv[3])
-        print >>sys.stderr, "Writing predators: %s, %s" % ( len(predators), num_pred)
+    if args.predators:
+        header, predators, num_pred = read_pred_only(args.predators)
+        print >>sys.stderr, "Writing predators %s from %s" % (args.predators, num_pred)
         write_pred(predators, header, taken_cells)
     else:
         num_pred = 0
 
-    print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (num_prey, sys.argv[2], sys.argv[1], num_pred)
+    print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (num_prey, args.seed_population, args.mode, num_pred)
     for taken in taken_cells:
         print >>sys.stderr, taken, len(taken_cells[taken])
 
