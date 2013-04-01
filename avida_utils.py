@@ -93,7 +93,7 @@ def read_avida_dat(fname):
 
             data = dict()
             for i in range(len(lexemes)):
-                data[headers[i]] = lexemes[i]
+                data[i] = data[headers[i]] = lexemes[i]
 
             avida_data.append(data)
 
@@ -110,8 +110,8 @@ def list_if_not(l):
 def format_line(header, data):
     ret = ""
 
-    if len(header) != len(data):
-        raise IOError("header and data length doesn't match: %s" (set(data.keys()) - set(header)))
+    if len(header) != len(data) and len(header) * 2 != len(data):
+        raise IOError("header and data length doesn't match: %s" % (set(data.keys()) - set(header)))
 
     for key in header:
         v = data[key]

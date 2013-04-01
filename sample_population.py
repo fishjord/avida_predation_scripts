@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 The first line of this file (#!/usr/bin/python) tells our shell how to 
@@ -132,13 +132,20 @@ def find_free_cell(taken_cells, seed):
 
     return cell
 
-def create_org_from_template(template, replicates, org_id, taken_cells, pred=False):
+def create_org_from_template(template, replicates, org_id, taken_cells, lineage, pred=False):
     org = copy.deepcopy(template)
     org["ID"] = org_id
+    num_units = org["Number of currently living organisms"]
     org["Number of currently living organisms"] = replicates
     org["Total number of organisms that ever existed"] = replicates
     #try to find a place as close as possible to where they were originally
-    org["Lineage Label"] = [org_id] * replicates
+
+    if type(lineage) == bool and lineage == True:
+        pass #leave lineage alone
+    elif type(lineage) == int:
+        org["Lineage Label"] = [lineage] * replicates
+    else:
+        org["Lineage Label"] = [org_id] * replicates
 
     """
     I had trouble deciding the best way to replicate an organism more (or less) times than how many were alive at the time the
@@ -163,10 +170,10 @@ def create_org_from_template(template, replicates, org_id, taken_cells, pred=Fal
                 else:
                     org[attr].append(0)
             elif "cell" in attr.lower():
-                #for cells we have to be careful not to duplicate values
+                #for cells we have to be careful not to duplicate values 
                 if attr not in taken_cells:
                     taken_cells[attr] = set()
-
+                    
                 org[attr].append(find_free_cell(taken_cells[attr], v))
             else:
                 #for the other ones we (should) be fine with duplicate values
@@ -177,19 +184,15 @@ def create_org_from_template(template, replicates, org_id, taken_cells, pred=Fal
 def write_pred(predators, header, taken_cells):
     org_id = len(taken_cells["Birth Cells"]) + 1
     for predator in predators:
-        print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells, pred=True))
+        print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells, None, pred=True))
         org_id += 1
 
-def write_high(avida_data, header):
-    taken_cells = dict()
+def write_high(avida_data, header, lineage, taken_cells):
     for i in range(len(avida_data)):
-        org = avida_data[i]
-        org["Lineage Label"] = [i] * org["Number of currently living organisms"]
-        print avida_utils.format_line(header, create_org_from_template(org, org["Number of currently living organisms"], i, taken_cells))
+        org = avida_data[i]            
+        print avida_utils.format_line(header, create_org_from_template(org, org["Number of currently living organisms"], i, taken_cells, lineage))
 
-    return taken_cells
-
-def write_intermediate(avida_data, header, num_output, replicates):
+def write_intermediate(avida_data, header, num_output, replicates, lineage, taken_cells):
     genotypes = {}
     for i in range(0, num_output, replicates):
         org = random.choice(avida_data)
@@ -199,20 +202,15 @@ def write_intermediate(avida_data, header, num_output, replicates):
 
         genotypes[genome]["cnt"] += min(replicates, num_output - i) # make sure we don't accidently create too many organisms
 
-    taken_cells = dict()
     org_id = 1
     for genome in genotypes:
         genotype = genotypes[genome]
-        print avida_utils.format_line(header, create_org_from_template(genotype["template"], genotype["cnt"], org_id, taken_cells))
+        print avida_utils.format_line(header, create_org_from_template(genotype["template"], genotype["cnt"], org_id, taken_cells, lineage))
         org_id += 1
 
-    return taken_cells
-
-def write_clone(avida_data, header, num_output):
+def write_clone(avida_data, header, num_output, lineage, taken_cells):
     print >>sys.stderr, "Writing out %s clones" % num_output
-    taken_cells = dict()
-    print avida_utils.format_line(header, create_org_from_template(random.choice(avida_data), num_output, 1, taken_cells))
-    return taken_cells
+    print avida_utils.format_line(header, create_org_from_template(random.choice(avida_data), num_output, 1, taken_cells, lineage))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -220,29 +218,43 @@ def main():
     parser.add_argument("--replicates", dest="replicates", help="Set the random number of replicates for the intermediate mode", default=55, type=int)
     parser.add_argument("--predators", dest="predators", help="Load predators from this spop")
     parser.add_argument("mode", help="Selection mode", choices=set(["high", "intermediate", "clone"]))
-    parser.add_argument("seed_population")
+
+    g = parser.add_mutually_exclusive_group(required=False)
+    g.add_argument("--set-lineage", dest="lineage", type=int, help="Set all output organism lineages to this value")
+    g.add_argument("--keep-lineage", dest="keep_lineage", action="store_true", help="Keep organism lineages from seed populations")
+
+    parser.add_argument("seed_population", nargs="+")
 
     args = parser.parse_args()
 
-    if args.seed:
-        print >>sys.stderr, "Setting random seed to %s" % args.seed
-        random.seed(args.seed)
+    print >>sys.stderr, "Setting random seed to %s" % args.seed
+    random.seed(args.seed)
 
     sample_type = args.mode
-    header, avida_data, num_prey = read_and_tweakspop(args.seed_population)  #Load the data from the file specified by the user    
+
+    taken_cells = {}
+    tot_prey = 0
+
+    if args.lineage:
+        lineage = args.lineage
+    elif args.keep_lineage:
+        lineage = True
+    else:
+        lineage = None
 
     print file_header
+    for seed_pop in args.seed_population:
+        header, avida_data, num_prey = read_and_tweakspop(seed_pop)  #Load the data from the file specified by the user    
+        tot_prey += num_prey
 
-    if sample_type == "high":
-        taken_cells = write_high(avida_data, header)
-    elif sample_type.startswith("intermediate"):
-        replicates = args.replicates
-        print >>sys.stderr, "Intermediate population replicate number: %d" % args.replicates
-        taken_cells = write_intermediate(avida_data, header, num_prey, replicates)
-    elif sample_type == "clone":
-        taken_cells = write_clone(avida_data, header, num_prey)
-    else:
-        raise Exception("Unknown sample type '%s'" % sample_type)
+        if sample_type == "high":
+            write_high(avida_data, header, lineage, taken_cells)
+        elif sample_type.startswith("intermediate"):
+            replicates = args.replicates
+            print >>sys.stderr, "Intermediate population replicate number: %d" % args.replicates
+            write_intermediate(avida_data, header, num_prey, replicates, lineage, taken_cells)
+        elif sample_type == "clone":
+            write_clone(avida_data, header, num_prey, lineage, taken_cells)
 
     if args.predators:
         header, predators, num_pred = read_pred_only(args.predators)
@@ -251,7 +263,7 @@ def main():
     else:
         num_pred = 0
 
-    print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (num_prey, args.seed_population, args.mode, num_pred)
+    print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (tot_prey, args.seed_population, args.mode, num_pred)
     for taken in taken_cells:
         print >>sys.stderr, taken, len(taken_cells[taken])
 

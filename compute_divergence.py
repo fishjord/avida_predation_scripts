@@ -101,7 +101,7 @@ else:
     args = sys.argv[1:]
 
 if len(args) < 2:
-    print "USAGE: sample_population.py [-l only,these,lineage,labels] <seed population> <detail.spop>..."
+    print "USAGE: compute_divergence.py [-l only,these,lineage,labels] <seed population> <detail.spop>..."
     sys.exit(1)
 
 header, avida_data = avida_utils.read_avida_dat(args[0])  #Load the data from the file specified by the user
