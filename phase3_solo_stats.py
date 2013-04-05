@@ -36,4 +36,4 @@ for rep_dir in sys.argv[1:]:
         continue
 
     for i in range(len(targets)):
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (rep_dir, targets[i]["Update"], targets[i][4] + targets[i][6], prey_inst[i]["move"], prey_inst[i]["look-ahead-intercept"], prey_inst[i]["rotate-x"], targets[i][2], pred_inst[i]["move"], pred_inst[i]["look-ahead-intercept"], pred_inst[i]["rotate-x"], pred_inst[i]["attack-prey"])
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (rep_dir, targets[i]["Update"], targets[i][4] + targets[i][6], prey_inst[i]["move"], prey_inst[i]["look-ahead-intercept"], prey_inst[i]["rotate-x"], targets[i][2], pred_inst[i]["move"], pred_inst[i]["look-ahead-intercept"], pred_inst[i]["rotate-x"], pred_inst[i]["attack-pred"])

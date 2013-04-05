@@ -65,7 +65,7 @@ def compute_dist(genome1, genome2):
         if aln1[i] != aln2[i]:
             mismatches += 1
 
-    return mismatches / len(aln1)
+    return mismatches / len(aln1), aln1, aln2
 
 def load_divergence(spop, seed_genome, only_lineages = None):
     header, avida_data = avida_utils.read_avida_dat(spop)
@@ -86,9 +86,15 @@ def load_divergence(spop, seed_genome, only_lineages = None):
                 continue
 
             best_dist = 1
+            best_aln = ("", "")
             for seed_genome in seed_genomes[lineage]:
-                best_dist = min(compute_dist(seed_genome, genotype["Genome Sequence"]), best_dist)
+                dist, aln1, aln2 = compute_dist(seed_genome, genotype["Genome Sequence"])
+                if dist < best_dist:
+                    best_aln = (aln1, aln2)
+                    best_dist = dist
 
+            #print "aln1: %s" % aln1
+            #print "aln2: %s" % aln2
             organism_divergences.append(best_dist)
 
     return organism_divergences
@@ -114,10 +120,12 @@ for genotype in avida_data:
         lineages = [lineages]
     for lineage in lineages:
         if lineage not in seed_genomes:
-            seed_genomes[lineage] = list()
-            seed_genomes[lineage].append(genotype["Genome Sequence"])
+            seed_genomes[lineage] = set()
         else:
             print >>sys.stderr, "WARNING: multiple organisms have lineage %s" % lineage
+
+        seed_genomes[lineage].add(genotype["Genome Sequence"])
+
 
 
 spop_data = []
