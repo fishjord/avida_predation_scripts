@@ -50,7 +50,9 @@ def read_avida_dat(fname):
     if len(headers) == 0:
         raise IOError("Failed to find column headers in %s" % fname)
 
+    lineno = 0
     while line != "":   # Python returns a blank line from readline at the end of a file
+        lineno += 1
         if line[0] != "#" and line.strip() != "":  #skip comment lines
             lexemes = line.strip().split()  #break the line up in to lexemes based on spaces
 
@@ -89,7 +91,7 @@ def read_avida_dat(fname):
                     lexemes[i] = v
 
                 if len(lexemes) != len(headers):
-                    raise IOError("Expected %s columns, not %s" % (len(headers), len(lexemes)))
+                    raise IOError("Expected %s columns, not %s in file %s:%s" % (len(headers), len(lexemes), fname, lineno))
 
             data = dict()
             for i in range(len(lexemes)):

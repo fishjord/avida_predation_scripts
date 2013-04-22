@@ -9,13 +9,16 @@ import shutil
 seed = 42
 random.seed(seed)
 
-sample_script="/home/fishjord/documents/cse845/project/scripts/sample_population.py"
+#sample_script="/home/fishjord/documents/cse845/project/scripts/sample_population.py"
+sample_script="/home/fishjord/cse845/avida_predation_scripts/sample_population.py"
 
-phase2_dir="/home/fishjord/documents/cse845/project/phase2"
-phase3_dir="/home/fishjord/documents/cse845/project/phase3"
+#phase2_dir="/home/fishjord/documents/cse845/project/phase2"
+phase2_dir="/mnt/scratch/fishjord/phase2"
+phase3_dir="."#"/home/fishjord/documents/cse845/project/phase3"
 
 #sim_2m_13    1198    198     1644.83333333 avg look instructions
-predators_spop="/home/fishjord/documents/cse845/project/phase1/pred/sim_2m_13/data/detail-2000000.spop"
+#predators_spop="/home/fishjord/documents/cse845/project/phase1/pred/sim_2m_13/data/detail-2000000.spop"
+predators_spop="/home/fishjord/cse845/predator_sim/sim_2m_13/data/detail-2000000.spop"
 
 svgs = ["high", "intermediate", "clone"]
 seed_pops = ["pred", "nopred"]
@@ -32,7 +35,7 @@ print "Selected replicates from phase 2 treatments: %s" % seed_replicates
 p3_skels = {"pairwise" : os.path.join(phase3_dir, "skel/pairwise_skel"), "solo" : os.path.join(phase3_dir, "skel/solo_skel")}
 p3_fpatterns = {"pairwise" : os.path.join(phase3_dir, "pairwise_%s_%s_vs_%s_%s_with%s"), "solo" : os.path.join(phase3_dir,"solo_%s_%s_with%s")}
 
-phase2_spop_pattern = os.path.join(phase2_dir, "%s_%s_phase2/sim_200000_%s/data/detail-200000.spop")
+phase2_spop_pattern = os.path.join(phase2_dir, "%s_%s_phase2/sim_200000_%s/data/detail-0.spop")
 
 for svg in svgs:
     for seed_pop in seed_pops:
