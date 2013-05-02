@@ -1,0 +1,74 @@
+From 76af031a97fd340a6406d956bb79b90d133ba600 Mon Sep 17 00:00:00 2001
+From: Jordan Fish <jrdn.fish@gmail.com>
+Date: Fri, 8 Mar 2013 17:02:03 -0500
+Subject: [PATCH 1/2] Added an option to make predators immortal
+ (PRED_IMMORTAL 0/1) to the avida config.
+
+Immortal predators won't die due to old age (executions, or phenotype time), instead they are reset.  Immortal predators are also unable to divide, testing if a divide with a predator is possible when PRED_IMMORTAL=1 always returns false.
+---
+ source/main/cAvidaConfig.h |    1 +
+ source/main/cOrganism.cc   |   15 +++++++++++++++
+ source/main/cOrganism.h    |    2 +-
+ 3 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/source/main/cAvidaConfig.h b/source/main/cAvidaConfig.h
+index a7d8cd2..8379db6 100644
+--- a/source/main/cAvidaConfig.h
++++ b/source/main/cAvidaConfig.h
+@@ -389,6 +389,7 @@ public:
+   CONFIG_ADD_GROUP(DIVIDE_GROUP, "Divide restrictions and triggers - settings describe conditions for a successful divide");
+   CONFIG_ADD_VAR(OFFSPRING_SIZE_RANGE, double, 2.0, "Maximal differential between offspring and parent length.\n(Checked BEFORE mutations applied on divide.)");
+   CONFIG_ADD_ALIAS(CHILD_SIZE_RANGE);
++  CONFIG_ADD_VAR(PRED_IMMORTAL, int, 0, "If set to 1 predators cannot die due to old age and cannot divide (only works with Experimental Hardware.");
+   CONFIG_ADD_VAR(MIN_COPIED_LINES, double, 0.5, "Code fraction that must be copied before divide");
+   CONFIG_ADD_VAR(MIN_EXE_LINES, double, 0.5, "Code fraction that must be executed before divide");
+   CONFIG_ADD_VAR(MIN_GENOME_SIZE, int, 0, "Minimum number of instructions allowed in a genome. 0 = OFF");
+diff --git a/source/main/cOrganism.cc b/source/main/cOrganism.cc
+index 88ba2ae..e284f06 100644
+--- a/source/main/cOrganism.cc
++++ b/source/main/cOrganism.cc
+@@ -363,6 +363,17 @@ int cOrganism::ReceiveValue()
+   return out_value;
+ }
+ 
++void cOrganism::Die(cAvidaContext& ctx)
++{
++  if((GetParentFT() <= -2 || !IsPreyFT()) && m_world->GetConfig().PRED_IMMORTAL.Get() == 1) {
++    m_phenotype.SetTimeUsed(0);
++    m_hardware->Reset(ctx);
++    return;
++  }
++  
++  m_interface->Die(ctx); m_is_dead = true;
++}
++
+ 
+ void cOrganism::DoInput(const int value)
+ {
+@@ -783,6 +794,10 @@ void cOrganism::PrintFinalStatus(ostream& fp, int time_used, int time_allocated)
+ 
+ bool cOrganism::Divide_CheckViable(cAvidaContext& ctx)
+ {
++  if((GetParentFT() <= -2 || !IsPreyFT()) && m_world->GetConfig().PRED_IMMORTAL.Get() == 1) {
++    return false;
++  }
++
+   // Make sure required task (if any) has been performed...
+   const int required_task = m_world->GetConfig().REQUIRED_TASK.Get();
+   const int immunity_task = m_world->GetConfig().IMMUNITY_TASK.Get();
+diff --git a/source/main/cOrganism.h b/source/main/cOrganism.h
+index 0e07c44..7ed9f81 100644
+--- a/source/main/cOrganism.h
++++ b/source/main/cOrganism.h
+@@ -247,7 +247,7 @@ public:
+   int GetNextInput(int& in_input_pointer) { return m_interface->GetInputAt(in_input_pointer); }
+   tBuffer<int>& GetInputBuf() { return m_input_buf; }
+   tBuffer<int>& GetOutputBuf() { return m_output_buf; }
+-  void Die(cAvidaContext& ctx) { m_interface->Die(ctx); m_is_dead = true; } 
++  void Die(cAvidaContext& ctx);
+   void KillCellID(int target, cAvidaContext& ctx) { m_interface->KillCellID(target, ctx); } 
+   void Kaboom(int dist, cAvidaContext& ctx) { m_interface->Kaboom(dist,ctx);} 
+   void SpawnDeme(cAvidaContext& ctx) { m_interface->SpawnDeme(ctx); }
+-- 
+1.7.9.5
+
