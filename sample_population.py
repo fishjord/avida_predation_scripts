@@ -80,8 +80,10 @@ def read_pred_only(fname):
         if type(parent_ft) != list:
             parent_ft = [parent_ft]
 
-        if -2 not in forager_types or -2 not in parent_ft:
+        if "Z" not in genotype["Genome Sequence"]:
             continue
+        #if -2 not in forager_types and -2 not in parent_ft:
+        #    continue
 
         cnt += genotype["Number of currently living organisms"]
 
