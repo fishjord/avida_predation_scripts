@@ -11,13 +11,14 @@ grid_y = 251
 
 max_preds = 200
 
-fmt = "i Inject {0} {1}"
+fmt = "i InjectGroup {0} {1} -1 -2"
 box_pix = 8
 
 num_boxes = 26
 
 change = ((grid_x) / 2) / num_boxes
 
+print "i LoadPopulation seed.spop -1 0 0 0 0 0 1\n"
 
 grid = []
 for i in range(grid_y):
@@ -38,12 +39,9 @@ for i in range(1, num_boxes):
     grid[(box[2] + box[0]) / 2][box[1]] = True
     grid[(box[2] + box[0]) / 2][box[3]] = True
 
-print "i LoadPopulation seed.spop -1 0 0 0 0 0 1\n"
-
 i = 0
 for x in range(grid_x):
     for y in range(grid_y):
         i += 1
         if grid[x][y]:
             print fmt.format(sys.argv[1], i)
-
