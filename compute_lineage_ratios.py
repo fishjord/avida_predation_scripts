@@ -5,6 +5,8 @@ import re
 import alignment
 import avida_utils #make sure the avida_utils.py file is in the same directory as this script
                    #you can read that file, but it does contain some advanced python constructs
+from operator import itemgetter
+import os
 
 if len(sys.argv) < 2:
     print >>sys.stderr, "USAGE: compute_divergence.py <spop_file>..."
@@ -63,7 +65,6 @@ def compute_pop_ratios(spop):
     for lineage in counts:
         ratios[lineage] = counts[lineage] / float(tot_orgs)
         
-
     return tot_orgs, counts, ratios
 
 if len(sys.argv) < 2:
@@ -71,8 +72,21 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 update_number_regex = re.compile("(.+/)*detail-(\d+).spop")
-print "#filename\tupdate\ttotal_pop_size\tnum_lineage_1\tnum_lineage_2\tratio_lineage_1\tratio_lineage_2"
+
+files = dict()
 for f in sys.argv[1:]:
+    match = update_number_regex.match(f)
+    parent = os.path.split(os.path.split(f)[0])[0]
+    if not match:
+        raise Exception("Failed to find update number in file name '%s'" % f)
+    update = int(match.groups()[1])
+
+    files[(parent, update)] = f
+
+print "#filename\tupdate\ttotal_pop_size\tnum_lineage_1\tnum_lineage_2\tratio_lineage_1\tratio_lineage_2"
+for k in sorted(files.keys(), key=itemgetter(0, 1)):
+    f = files[k]
+    print >> sys.stderr, "Processing {0}".format(f)
     match = update_number_regex.match(f)
     if not match:
         raise Exception("Failed to find update number in file name '%s'" % f)
