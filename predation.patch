@@ -1,0 +1,104 @@
+:100644 100644 fa6205f... d5d9a98... M	source/cpu/cHardwareExperimental.cc
+:100644 100644 7770093... f095e4a... M	source/main/cAvidaConfig.h
+:100644 100644 a048872... 7293987... M	source/main/cOrganism.cc
+:100644 100644 24ca9a6... 9e07551... M	source/main/cOrganism.h
+:100644 100644 0248af6... 5c6631f... M	source/main/cStats.cc
+:100644 100644 ba72a53... dce7455... M	source/main/cStats.h
+
+diff --git a/source/cpu/cHardwareExperimental.cc b/source/cpu/cHardwareExperimental.cc
+index fa6205f..d5d9a98 100644
+--- a/source/cpu/cHardwareExperimental.cc
++++ b/source/cpu/cHardwareExperimental.cc
+@@ -5242,6 +5242,7 @@ bool cHardwareExperimental::Inst_AttackPrey(cAvidaContext& ctx)
+   if (!TestAttack(ctx)) { results.success = 1; return TestAttackResultsOut(results); }
+   cOrganism* target = GetPreyTarget(ctx);
+   if (!TestPreyTarget(target)) { results.success = 1; return TestAttackResultsOut(results); }
++  cStats::num_attacks++;
+ 
+   sAttackReg reg;
+   SetAttackReg(reg);
+diff --git a/source/main/cAvidaConfig.h b/source/main/cAvidaConfig.h
+index 7770093..f095e4a 100644
+--- a/source/main/cAvidaConfig.h
++++ b/source/main/cAvidaConfig.h
+@@ -383,6 +383,7 @@ public:
+   CONFIG_ADD_VAR(INHERIT_MULTITHREAD, int, 0, "Should offspring of parents with multiple threads be marked multithreaded?");
+   CONFIG_ADD_ALIAS(INHERIT_MULTI_THREAD_CLASSIFICATION);
+   
++  CONFIG_ADD_VAR(PRED_IMMORTAL, int, 0, "If set to 1 predators cannot die due to old age and cannot divide (only works with Experimental Hardware.");
+ 	
+ 
+   // -------- Divide Restrictions config options --------
+diff --git a/source/main/cOrganism.cc b/source/main/cOrganism.cc
+index a048872..7293987 100644
+--- a/source/main/cOrganism.cc
++++ b/source/main/cOrganism.cc
+@@ -777,8 +777,23 @@ void cOrganism::PrintFinalStatus(ostream& fp, int time_used, int time_allocated)
+   }
+ }
+ 
++void cOrganism::Die(cAvidaContext& ctx)
++{
++  if((GetParentFT() <= -2 || !IsPreyFT()) && m_world->GetConfig().PRED_IMMORTAL.Get() == 1) {
++    m_phenotype.SetTimeUsed(0);
++    m_hardware->Reset(ctx);
++  } else {
++    m_interface->Die(ctx);
++    m_is_dead = true;
++  }
++}
++
+ bool cOrganism::Divide_CheckViable(cAvidaContext& ctx)
+ {
++  if((GetParentFT() <= -2 || !IsPreyFT()) && m_world->GetConfig().PRED_IMMORTAL.Get() == 1) {
++    m_hardware->Reset(ctx);
++    return false;
++  }
+   // Make sure required task (if any) has been performed...
+   const int required_task = m_world->GetConfig().REQUIRED_TASK.Get();
+   const int immunity_task = m_world->GetConfig().IMMUNITY_TASK.Get();
+diff --git a/source/main/cOrganism.h b/source/main/cOrganism.h
+index 24ca9a6..9e07551 100644
+--- a/source/main/cOrganism.h
++++ b/source/main/cOrganism.h
+@@ -247,7 +247,7 @@ public:
+   int GetNextInput(int& in_input_pointer) { return m_interface->GetInputAt(in_input_pointer); }
+   tBuffer<int>& GetInputBuf() { return m_input_buf; }
+   tBuffer<int>& GetOutputBuf() { return m_output_buf; }
+-  void Die(cAvidaContext& ctx) { m_interface->Die(ctx); m_is_dead = true; } 
++  void Die(cAvidaContext& ctx);// { m_interface->Die(ctx); m_is_dead = true; } 
+   void KillCellID(int target, cAvidaContext& ctx) { m_interface->KillCellID(target, ctx); } 
+   void Kaboom(int dist, cAvidaContext& ctx) { m_interface->Kaboom(dist,ctx);} 
+   void SpawnDeme(cAvidaContext& ctx) { m_interface->SpawnDeme(ctx); }
+diff --git a/source/main/cStats.cc b/source/main/cStats.cc
+index 0248af6..5c6631f 100644
+--- a/source/main/cStats.cc
++++ b/source/main/cStats.cc
+@@ -55,6 +55,7 @@
+ using namespace Avida;
+ using namespace AvidaTools;
+ 
++int cStats::num_attacks = 0;
+ 
+ cStats::cStats(cWorld* world)
+ : m_world(world)
+@@ -1069,6 +1070,7 @@ void cStats::PrintCountData(const cString& filename)
+   df->Write(num_single_thread_creatures, "number of single-threaded organisms");
+   df->Write(num_multi_thread_creatures, "number of multi-threaded organisms");
+   df->Write(num_modified, "number of modified organisms");
++  df->Write(num_attacks, "Total Attacks");
+   df->Endl();
+ }
+ 
+diff --git a/source/main/cStats.h b/source/main/cStats.h
+index ba72a53..dce7455 100644
+--- a/source/main/cStats.h
++++ b/source/main/cStats.h
+@@ -393,6 +393,7 @@ public:
+   cStats(cWorld* world);
+   ~cStats() { ; }
+ 
++  static int num_attacks;
+   
+   // Data::Provider
+   Data::ConstDataSetPtr Provides() const;
