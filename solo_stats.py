@@ -22,7 +22,7 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 #solo/treatment_pred/sgv_intermediate_histconting_pred/sim_8
-header = "#eval_treatment\tsgv\thist_conting\treplicate\tupdate\tnum_prey\tmoves\tlooks\trotate\tprey_insts\tnum_pred\tpred_attacks"
+print "#treatment\tinit_diversity\tpred_history\treplicate\tupdate\tnum_prey\tmoves\tlooks\trotate\tprey_insts\tnum_pred\tpred_attacks"
 expected_pred = 200
 for rep_dir in sys.argv[1:]:
     lexemes = rep_dir.split("/")
@@ -42,7 +42,18 @@ for rep_dir in sys.argv[1:]:
         continue
 
     if not os.path.exists(os.path.join(rep_dir, "data")):
-        print >>sys.stderr, "{0}\tNo data directory".format(rep_dir)
+        print >>sys.stderr, "ERROR\t{0}\tNo data directory".format(rep_dir)
+        continue
+
+    expected_updates = set(range(1000, 10500, 500))
+
+    if not os.path.exists(os.path.join(rep_dir, "data/targets.dat")):
+        if os.path.exists(os.path.join(rep_dir, "completed")):
+            print >>sys.stderr, "WARNING\t{0}\tData dir exists, completed file exists, not targets, assuming extinct pop loaded".format(rep_dir)
+            for update in sorted(expected_updates):
+                print "{0}\t{1}\t{2}\t{3}\t{4}\t0\t0\t0\t0\t0\t0\t0".format(eval_treatment, sgv, hist_conting, rep, update - 1000)
+        else:
+            print >>sys.stderr, "ERROR\t{0}\tBorked directory structure".format(rep_dir)
         continue
 
     try:
@@ -50,14 +61,12 @@ for rep_dir in sys.argv[1:]:
         header, prey_inst = avida_utils.read_avida_dat(prey_inst_file)
         header, pred_inst = avida_utils.read_avida_dat(pred_inst_file)
     except Exception as e:
-        print >>sys.stderr, "{0}\tError when reading data files: {1}".format(rep_dir, e)
+        print >>sys.stderr, "ERROR\t{0}\t{1}".format(rep_dir, e)
         continue
 
     if len(targets) != len(prey_inst) or len(prey_inst) != len(pred_inst):
-        print >>sys.stderr, "{0}\tNumber of updates in targets/prey/pred inst not the same".format(rep_dir)
+        print >>sys.stderr, "ERROR\t{0}\tNumber of updates in targets/prey/pred inst not the same".format(rep_dir)
         continue
-
-    expected_updates = set(range(1000, 11500, 500))
 
     for i in range(len(targets)):
         instructions = 0.0
@@ -69,11 +78,25 @@ for rep_dir in sys.argv[1:]:
         num_prey = targets[i][4] + targets[i][6]
         update = targets[i]["Update"]
 
+        if update not in expected_updates:
+            print >>sys.stderr, "WARNING\t{0}\tUpdate {1} is not an expected update, skipping".format(rep_dir, update)
+            continue
+
         if num_prey < 900:
-            print >>sys.stderr, "{0}\tAbnormally low prey count update {1}".format(rep_dir, update)
+            print >>sys.stderr, "WARNING\t{0}\tAbnormally low prey count update {1}".format(rep_dir, update)
         expected_updates.remove(update)
 
         if eval_treatment == "pred" and num_pred != expected_pred:
-            print >>sys.stderr, "{0}\t{1} predators".format(rep_dir, expected_pred)
+            print >>sys.stderr, "WARNING\t{0}\t{1} predators".format(rep_dir, expected_pred)
 
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (eval_treatment, sgv, hist_conting, rep, update - 1000, num_prey, prey_inst[i]["move"], prey_inst[i]["look-ahead-intercept"], prey_inst[i]["rotate-x"], int(instructions), targets[i][2], pred_inst[i]["Total Attacks"])
+        if eval_treatment == "pred":
+            treatment = "PredatorPresent"
+        else:
+            treatment = "PredatorAbsent"
+
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (treatment, sgv, hist_conting, rep, update - 1000, num_prey, prey_inst[i]["move"], prey_inst[i]["look-ahead-intercept"], prey_inst[i]["rotate-x"], int(instructions), targets[i][2], pred_inst[i]["Total Attacks"])
+
+    if len(expected_updates) > 0:
+        print >>sys.stderr, "WARNING\t{0}\tMissing data for updates {1}".format(rep_dir, expected_updates)
+        for update in sorted(expected_updates):
+            print "{0}\t{1}\t{2}\t{3}\t{4}\t0\t0\t0\t0\t0\t0\t0".format(eval_treatment, sgv, hist_conting, rep, update - 1000)

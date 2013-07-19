@@ -5,6 +5,9 @@ base=`pwd`
 
 run_sim=$(cd `dirname $0` &>/dev/null; pwd; cd - &>/dev/null)/run_sim.sh
 
+walltime=$1
+shift
+
 for sim_dir in $*
 do
     echo "Submitting $sim_dir"
@@ -23,7 +26,7 @@ do
 
     touch submitted
 
-    qsub -l mem=3000mb,walltime=3:00:00 -j oe -m abe -N `basename $sim_dir` -v sim_dir=$sim_dir_abspath $run_sim
+    qsub -l mem=3000mb,walltime=${walltime} -j oe -m abe -N `basename $sim_dir` -v sim_dir=$sim_dir_abspath $run_sim
 done
 
 cd $base

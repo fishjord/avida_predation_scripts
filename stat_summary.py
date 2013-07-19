@@ -45,9 +45,9 @@ for line in open(sys.argv[2]):
 
 print "treatment\tupdate\t{0}".format("\t".join(["{0}_mean\t{0}_std".format(header) for header in headers[update_column + 1:]]))
 for key in sorted(running_averages.keys(), key=operator.itemgetter(1, 0)):
-    s = "{0}\t{1}\t".format(key[0], key[1])
+    s = "{0}\t{1}".format(key[0], key[1])
     for header in headers[update_column + 1:]:
         arr = running_averages[key][header]
-        s += "{0:.3f}\t{1:.3f}\t".format(numpy.mean(arr), numpy.std(arr))
+        s += "\t{0:.3f}\t{1:.3f}".format(numpy.mean(arr), numpy.std(arr))
         
     print s

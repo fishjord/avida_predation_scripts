@@ -25,8 +25,8 @@ hist_contings = ["pred", "nopred"]
 solo_skel_dir = { "pred" : os.path.join(phase3_dir, "skel/solo_skel_pred"), "nopred" : os.path.join(phase3_dir, "skel/solo_skel_nopred")}
 solo_eval_path_pattern = os.path.join(phase3_dir,"solo/treatment_{0}/sgv_{1}_histconting_{2}/sim_{3}")
 
-phase2_spop_pattern = { "pred" : os.path.join(phase2_dir, "pred/{0}/sim_200000_{1}/data/detail-{2}.spop"), 
-                        "nopred" : os.path.join(phase2_dir, "nopred/{0}/sim_200000_{1}/data/detail-{2}.spop") }
+phase2_spop_pattern = { "pred" : os.path.join(phase2_dir, "pred_replicates/{0}/sim_{1}/data/detail-{2}.spop"), 
+                        "nopred" : os.path.join(phase2_dir, "nopred_replicates/{0}/sim_{1}/data/detail-{2}.spop") }
 
 for sgv in sgvs:
     for hist_conting in hist_contings:
