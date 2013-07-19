@@ -37,10 +37,23 @@ def main():
         print >> sys.stderr, "usage: python ShanDiv.py [population]..."
         sys.exit(1)
 
-    print "#input_file\tpopulation_size(prey)\tshannon_diversity"
+    #nopred_replicates/clone/sim_10/data/detail-0.spop
+    #init_diversity  pred_history    replicate       update
+    print "init_diversity\tpred_history\treplicate\tupdate\tnum_prey\tshannon_diversity"
     for popFile in sys.argv[1:]:
+        lexemes = popFile.split("/")
+        hist_conting = lexemes[0].split("_")[0]
+        sgv = lexemes[1]
+        rep = lexemes[2].split("_")[1]
+        update = lexemes[4].replace(".spop", "").split("-")[1]
+
+        if hist_conting == "pred":
+            hist_conting = "PredatorPresent"
+        else:
+            hist_conting = "PredatorAbsent"
+
         pop_size, diversity = ShanDiversity(popFile)
-        print "%s\t%s\t%s" % (popFile, pop_size, diversity)
+        print "{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format(sgv, hist_conting, rep, update, pop_size, diversity)
 
 if __name__ == "__main__":
     main()
