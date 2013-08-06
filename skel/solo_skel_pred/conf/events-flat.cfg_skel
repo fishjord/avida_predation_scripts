@@ -1,0 +1,52 @@
+
+u 1000 LoadPopulation seed.spop -1 0 0 0 0 0 1
+
+# STANDARD DATA
+u 1000:500:end PrintAverageData       										# Save info about they average genotypes
+u 1000:500:end PrintErrorData       											# Std. Error on averages.
+u 1000:500:end PrintVarianceData    											# Variance on averages.
+# u 1000:1000:end PrintStatsData         										# Collect satistics about entire pop.
+u 1000:500:end PrintCountData         										# Count organisms, genotypes, species, etc.
+u 1000:500:end PrintTimeData          										# Track time conversion (generations, etc.)
+# u 100:100:end PrintTotalsData      										# Total counts over entire run.
+
+u 1000:500:end PrintPreyAverageData       										# Save info about they average genotypes
+u 1000:500:end PrintPreyErrorData       											# Std. Error on averages.
+u 1000:500:end PrintPreyVarianceData    											# Variance on averages.
+
+u 1000:500:end PrintPredatorAverageData       										# Save info about they average genotypes
+u 1000:500:end PrintPredatorErrorData       											# Std. Error on averages.
+u 1000:500:end PrintPredatorVarianceData    											# Variance on averages.
+
+# REACTION DATA
+u 1000:500:end PrintReactionData 												
+
+# FORAGERS DATA
+u 1000:500:end PrintTargets 													
+
+# GENOME & INSTRUCTION DATA
+u 1000:500:end PrintThreadsData
+u 1000:500:end PrintInstructionData   										# Print distribution of instructions.
+u 1000:500:end PrintDominantData     											# Save info about most abundant genotypes
+
+u 1000:500:end PrintData data.dat update,ave_fitness,ave_gest,ave_merit,ave_age,generation,ave_length,entropy,num_cpus
+
+u 1000:500:end PrintPreyInstructionData   										# Print distribution of instructions.
+u 1000:500:end PrintPredatorInstructionData   										# Print distribution of instructions.
+
+# POP & ORG SAVES
+# u 1000:1000:end SaveFlameData # useless if genotype classification is off
+u 1000:500:end SavePopulation save_rebirth=1:save_historic=0        						# Save current state of population [save_groups=0].
+
+# u 1000:1000:end PrintMicroTraces next_prey=1:next_pred=1:print_genomes=1
+# u 1000:5600:end PrintMiniTraces save_dominants=1:save_foragers=1:print_genomes=1:orgs_per=1							# [save_dominants=0:save_groups=0:save_foragers=0:orgs_per=1:max_samples=0:print_genomes=1]
+
+# u 100000:100000:end PrintDominantGenotype      								# Save the most abundant genotypes (same as printminitraces with save_dominants & print_genomes)
+# u 1000:1000:end PrintDominantForagerGenotypes      					# Save the most abundant genotypes with each existing forager type (same as printminitraces with save_foragers & print_genomes)
+
+# RESOURCE DATA
+# u 1999500:1:2000000 DumpMaxResGrid
+# u 1999500:1:2000000 PrintOrgLocData
+
+# EXIT CONDITIONS
+u {UPDATES} exit                        										# exit

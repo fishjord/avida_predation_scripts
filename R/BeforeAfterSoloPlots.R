@@ -15,29 +15,14 @@ post$before_after = as.factor(rep("after", nrow(pre)))
 summary(pre)
 summary(post)
 BA.data = rbind(pre, post)
+BA.data["ratio_moves"] <- BA.data["moves"] / (BA.data["prey_insts"] + .0001)
+BA.data["ratio_looks"] <- BA.data["looks"] / (BA.data["prey_insts"] + .0001)
+BA.data["ratio_rotate"] <- BA.data["rotate"] / (BA.data["prey_insts"] + .0001)
 summary(BA.data)
 
 #BA.data$before_after <- factor (BA.data$before_after, levels(BA.data$before_after)[c(2,1)])
 
-
-lastupdate <- subset(BA.data, BA.data$update == "9000")
-
-summary(lastupdate)
-
-
-#Subset the data into predator absent and present (pabs, ppres)
-
-high <- subset(lastupdate, lastupdate$init_diversity == "high")
-high.pabs <- subset(high, high$treatment == "PredatorAbsent")
-high.ppres <- subset(high, high$treatment == "PredatorPresent")
-
-intermediate <- subset(lastupdate, lastupdate$init_diversity == "intermediate")
-intermediate.pabs <- subset(intermediate, intermediate$treatment == "PredatorAbsent")
-intermediate.ppres <- subset(intermediate, intermediate$treatment == "PredatorPresent")
-
-clone <- subset(lastupdate, lastupdate$init_diversity == "clone")
-clone.pabs <- subset(clone, clone$treatment == "PredatorAbsent")
-clone.ppres <- subset(clone, clone$treatment == "PredatorPresent")
+BA.data <- subset(BA.data, BA.data$update == "10000")
 
 ConfInt <- function(y){
 	
@@ -51,145 +36,37 @@ ConfInt <- function(y){
   return(c(lower_CI_x, upper_CI_x))
 }
 
+do.plot <- function(data, fact, resp, group) {
+   pdf(paste(resp, "plots.pdf", sep="_"))
+   par(mfrow = c(2,3), mar = c(0,1,1,0), oma = c(5,4,2,4), family = "serif", cex.axis = 1.5)
+   r = with(data, get(resp))
 
-#####
-#Plot
-#6 figures for each of moves, rotations, and looks
-#####
+   ylim = c(min(r) * .90, max(r) * 1.1)
 
-pdf("move_plots.pdf")
-par(mfrow = c(2,3), mar = c(0,1,1,0), oma = c(5,4,2,4), family = "serif", cex.axis = 1.5)
+   for(treatment in c("PredatorPresent", "PredatorAbsent")) {
+      for(sgv in c("clone", "intermediate", "high")) {
+         ss = data[data$init_diversity %in% sgv & data$treatment %in% treatment, ]
+   	 with(ss, lineplot.CI(x.factor = get(fact), response = get(resp), group = get(group), ci.fun = function(y) ConfInt(y), x.leg = 0.95, y.leg=0.0001, cex = 1.5, cex.leg = 1.5, cex.axis = 1.5, ylim=ylim, xaxt = 'n'))
+	 mtext(sgv, side = 3, cex = 1, line = 0.15)
+	 mtext(resp, side = 2, cex = 1.2, line = 2, outer = T)
+	 #text(2.05, 0.05, "A", cex = 2, pch = c(1,16,15))
+      }
+      mtext(treatment, side = 4, cex = 1.2, line = 1.5)
+   }
 
-#Plot moves
+   mtext("Before or After Phase 2", side = 1, cex = 1.2, outer = T, line = 2.1, )
+   mtext("before", side = 1, cex = 1, line = 0.7, adj = 0.05)
+   mtext("after", side = 1, cex = 1, line = 0.7, adj = 0.955)   
+   dev.off()
+}
 
-with(clone.ppres, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 0.95, y.leg=0.0001, xlab = "", cex = 1.5, cex.leg = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Clone", side = 3, cex = 1, line = 0.15)
-mtext("Prey moves / total prey instructions", side = 2, cex = 1.2, line = 2, outer = T)
-text(2.05, 0.05, "A", cex = 2, pch = c(1,16,15))
-
-with(intermediate.ppres, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Intermediate", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.05, "B", cex = 2, pch = c(1,16,15))
-
-with(high.ppres, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5, xaxt = 'n'))
-mtext("High", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.05,  "C", cex = 2, pch = c(1,16,15))
-
-mtext("Predator Present", side = 4, cex = 1.2, line = 1.5)
-
-#Plot moves
-
-with(clone.pabs, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 1, xlab = "", cex = 1.5, legend = F, cex.axis = 1.5))
-text(2.05, 0.05, "D", cex = 2, pch = c(1,16,15))
-
-with(intermediate.pabs, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5))
-text(2.05, 0.05, "E", cex = 2, pch = c(1,16,15))
-
-with(high.pabs, lineplot.CI(x.factor = before_after, response = moves, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5))
-mtext("Predator Absent", side = 4, cex = 1.2, line = 1.5)
-mtext("Before or After Phase 2", side = 1, cex = 1.2, outer = T, line = 3)
-text(2.05, 0.05, "F", cex = 2, pch = c(1,16,15))
-
-dev.off()
-
-###Same plot style as moves but with rotates
-pdf("rotate_plots.pdf")
-par(mfrow = c(2,3), mar = c(1,1,1.2,0), oma = c(5,4,2,4), family = "serif", cex.axis = 1.5)
-
-#Plot turns
-
-with(clone.ppres, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 0.95, y.leg = 0.00002, xlab = "", cex = 1.5, cex.leg = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Clone", side = 3, cex = 1, line = 0.15)
-mtext("Prey turns / total prey instructions", side = 2, cex = 1.2, line = 2, outer = T)
-text(2.05, 0.05, "A", cex = 2, pch = c(1,16,15))
-
-with(intermediate.ppres, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Intermediate", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.05, "B", cex = 2, pch = c(1,16,15))
-
-with(high.ppres, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5, xaxt = 'n'))
-mtext("High", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.05,  "C", cex = 2, pch = c(1,16,15))
-
-mtext("Predator Present", side = 4, cex = 1.2, line = 1.5)
-
-#Plot turns
-
-with(clone.pabs, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 1, xlab = "", cex = 1.5, legend = F, cex.axis = 1.5))
-text(2.05, 0.05, "D", cex = 2, pch = c(1,16,15))
-
-with(intermediate.pabs, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5))
-text(2.05, 0.05, "E", cex = 2, pch = c(1,16,15))
-
-with(high.pabs, lineplot.CI(x.factor = before_after, response = rotate, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5))
-mtext("Predator Absent", side = 4, cex = 1.2, line = 1.5)
-mtext("Before or After Phase 2", side = 1, cex = 1.2, outer = T, line = 3)
-text(2.05, 0.05, "F", cex = 2, pch = c(1,16,15))
-dev.off()
-
-###Same plot style as moves and rotates but with looks
-pdf("look_plots.pdf")
-par(mfrow = c(2,3), mar = c(1,1,1,0), oma = c(5,4,2,4), family = "serif")
-
-#Plot looks
-
-with(clone.ppres, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 0.9, y.leg = 0.00005, xlab = "", cex = 1.5, cex.leg = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Clone", side = 3, cex = 1, line = 0.15)
-mtext("Prey looks / total prey instructions", side = 2, cex = 1.2, line = 2, outer = T)
-text(2.05, 0.95, "A", cex = 2, pch = c(1,16,15))
-
-with(intermediate.ppres, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Intermediate", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.95, "B", cex = 2, pch = c(1,16,15))
-
-with(high.ppres, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5, xaxt = 'n'))
-mtext("High", side = 3, cex = 1, line = 0.15)
-text(2.05, 0.95,  "C", cex = 2, pch = c(1,16,15))
-
-mtext("Predator Present", side = 4, cex = 1.2, line = 1.5)
-
-#Plot looks
-
-with(clone.pabs, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 1, xlab = "", cex = 1.5, legend = F, cex.axis = 1.5))
-text(2.05, 0.95, "D", cex = 2, pch = c(1,16,15))
-
-with(intermediate.pabs, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5))
-text(2.05, 0.95, "E", cex = 2, pch = c(1,16,15))
-
-with(high.pabs, lineplot.CI(x.factor = before_after, response = looks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5))
-mtext("Predator Absent", side = 4, cex = 1.2, line = 1.5)
-mtext("Before or After Phase 2", side = 1, cex = 1.2, outer = T, line = 3)
-text(2.05, 0.95, "F", cex = 2, pch = c(1,16,15))
-dev.off()
-
-
-
-pdf("attack_plots.pdf")
-par(mfrow = c(1,3), mar = c(1,1,1,0), oma = c(4,4,2,4), family = "serif")
-
-#Plot pred attacks
-
-with(clone.ppres, lineplot.CI(x.factor = before_after, response = pred_attacks, group = pred_history, ci.fun = function(y) ConfInt(y), x.leg = 0.95, xlab = "", cex = 1.5, cex.leg = 1.5, cex.axis = 1.5, xaxt = 'n', y.leg = 1000000))
-mtext("Clone", side = 3, cex = 1, line = 0.15)
-mtext("Predator Attacks", side = 2, cex = 1.2, line = 2.4, outer = T)
-#text(2.05, 900000, "A", cex = 2, pch = c(1,16,15))
-
-mtext("before", side = 1, cex = 1, line = 0.7, adj = 0.05)
-mtext("after", side = 1, cex = 1, line = 0.7, adj = 0.955)
-
-with(intermediate.ppres, lineplot.CI(x.factor = before_after, response = pred_attacks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", ylab = "", yaxt = 'n', cex = 1.5, cex.axis = 1.5, xaxt = 'n'))
-mtext("Intermediate", side = 3, cex = 1, line = 0.15)
-#text(2.05, 900000, "B", cex = 2, pch = c(1,16,15))
-
-mtext("before", side = 1, cex = 1, line = 0.7, adj = 0.05)
-mtext("after", side = 1, cex = 1, line = 0.7, adj = 0.955)
-
-with(high.ppres, lineplot.CI(x.factor = before_after, response = pred_attacks, group = pred_history, ci.fun = function(y) ConfInt(y), legend = F, xlab = "", cex = 1.5, ylab = "", yaxt = 'n', cex.axis = 1.5, xaxt = 'n'))
-mtext("High", side = 3, cex = 1, line = 0.15)
-#text(2.05, 900000, "C", cex = 2, pch = c(1,16,15))
-
-mtext("Before or After Phase 2", side = 1, cex = 1.2, outer = T, line = 2.1, )
-mtext("before", side = 1, cex = 1, line = 0.7, adj = 0.05)
-mtext("after", side = 1, cex = 1, line = 0.7, adj = 0.955)
-
-dev.off()
+do.plot(BA.data, "before_after", "num_prey", "pred_history")
+do.plot(BA.data, "before_after", "moves", "pred_history")
+do.plot(BA.data, "before_after", "looks", "pred_history")
+do.plot(BA.data, "before_after", "rotate", "pred_history")
+do.plot(BA.data, "before_after", "ratio_moves", "pred_history")
+do.plot(BA.data, "before_after", "ratio_looks", "pred_history")
+do.plot(BA.data, "before_after", "ratio_rotate", "pred_history")
+do.plot(BA.data, "before_after", "prey_insts", "pred_history")
+do.plot(BA.data, "before_after", "num_pred", "pred_history")
+do.plot(BA.data, "before_after", "pred_attacks", "pred_history")

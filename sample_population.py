@@ -88,6 +88,9 @@ def read_pred_only(fname):
         cnt += genotype["Number of currently living organisms"]
 
         genotype["Parent ID(s)"] = "(none)"
+        genotype["Current Forager Types"] = [-2] * genotype["Number of currently living organisms"]
+        genotype["Parent forager type"] = [-2] * genotype["Number of currently living organisms"]
+        genotype["Was Parent a Teacher"] = [1] * genotype["Number of currently living organisms"]
 
         ret.append(genotype)
 
@@ -129,6 +132,15 @@ def find_free_cell(taken_cells, seed):
             change = 1
         elif cell > 251*251:   # We use a 251 by 251 grid, so if we didn't find a free cell between 0-seed nor seed-255^2...
             raise Exception("Probably a problem finding an empty cell...")
+
+    taken_cells.add(cell)
+
+    return cell
+
+def find_free_random_cell(taken_cells):
+    cell = random.randint(1, 251*251)
+    while cell in taken_cells:
+        cell = random.randint(1, 251*251)
 
     taken_cells.add(cell)
 
@@ -176,7 +188,10 @@ def create_org_from_template(template, replicates, org_id, taken_cells, lineage,
                 if attr not in taken_cells:
                     taken_cells[attr] = set()
                     
-                org[attr].append(find_free_cell(taken_cells[attr], v))
+                if taken_cells["rand"]:
+                    org[attr].append(find_free_random_cell(taken_cells[attr]))
+                else:
+                    org[attr].append(find_free_cell(taken_cells[attr], v))
             else:
                 #for the other ones we (should) be fine with duplicate values
                 org[attr].append(v)
@@ -184,7 +199,7 @@ def create_org_from_template(template, replicates, org_id, taken_cells, lineage,
     return org
 
 def write_pred(predators, header, taken_cells):
-    org_id = len(taken_cells["Birth Cells"]) + 1
+    org_id = len(taken_cells.get("Birth Cells", [])) + 1
     for predator in predators:
         print avida_utils.format_line(header, create_org_from_template(predator, predator["Number of currently living organisms"], org_id, taken_cells, None, pred=True))
         org_id += 1
@@ -217,6 +232,7 @@ def write_clone(avida_data, header, num_output, lineage, taken_cells):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--random-seed", dest="seed", help="Set the random number seed", default=0, type=int)
+    parser.add_argument("--random-loc", dest="rand_loc", default=False, action="store_true")
     parser.add_argument("--replicates", dest="replicates", help="Set the random number of replicates for the intermediate mode", default=55, type=int)
     parser.add_argument("--predators", dest="predators", help="Load predators from this spop")
     parser.add_argument("mode", help="Selection mode", choices=set(["high", "intermediate", "clone"]))
@@ -244,6 +260,9 @@ def main():
     else:
         lineage = None
 
+    taken_cells["rand"] = args.rand_loc
+    
+
     print file_header
     for seed_pop in args.seed_population:
         header, avida_data, num_prey = read_and_tweakspop(seed_pop)  #Load the data from the file specified by the user    
@@ -267,6 +286,8 @@ def main():
 
     print >>sys.stderr, "Read in %s organisms from %s and created a(n) %s variation spop file with %s predators" % (tot_prey, args.seed_population, args.mode, num_pred)
     for taken in taken_cells:
+        if taken == "rand":
+            continue
         print >>sys.stderr, taken, len(taken_cells[taken])
 
 

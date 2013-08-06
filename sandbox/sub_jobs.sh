@@ -24,9 +24,8 @@ do
 	continue
     fi
 
-    touch submitted
-
     qsub -l mem=3000mb,walltime=${walltime} -j oe -m abe -N `basename $sim_dir` -v sim_dir=$sim_dir_abspath $run_sim
+    touch submitted
 done
 
 cd $base

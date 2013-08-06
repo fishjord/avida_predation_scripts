@@ -1,0 +1,48 @@
+#inst_set pred-instset
+#hw_type 3 
+
+fork-thread
+fork-thread
+fork-thread
+
+zero
+nop-B		# habitat -2
+dec
+nop-B
+dec
+nop-B
+set-forage-target
+nop-B
+attack-prey
+
+rotate-org-id	# rotate to face last org seen
+nop-E
+attack-prey
+if-equ-0		# if nothing seen, rotate randomly
+nop-F
+rand
+nop-A		# random number
+if-equ-0
+nop-F
+rotate-x	# rotate randomly if not found
+move		# else move in that direction
+attack-prey
+nop-A
+if-not-0
+nop-F
+move		# move again
+attack-prey
+
+get-forage-target # search type -2
+nop-B
+rand
+nop-C		# random number (hoping for large #) for search distance
+zero		# search type: closest prey
+nop-D		
+look-ahead-intercept
+nop-B
+nop-C
+nop-D
+nop-E		# should have last seen live org id in this register
+attack-prey
+

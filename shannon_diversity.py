@@ -43,9 +43,15 @@ def main():
     for popFile in sys.argv[1:]:
         lexemes = popFile.split("/")
         hist_conting = lexemes[0].split("_")[0]
-        sgv = lexemes[1]
-        rep = lexemes[2].split("_")[1]
-        update = lexemes[4].replace(".spop", "").split("-")[1]
+
+        if len(lexemes) == 5:
+            sgv = lexemes[1]
+            rep = lexemes[2].split("_")[1]
+            update = lexemes[4].replace(".spop", "").split("-")[1]
+        else:
+            sgv = "NA"
+            rep = lexemes[1].split("_")[1]
+            update = lexemes[3].replace(".spop", "").split("-")[1]
 
         if hist_conting == "pred":
             hist_conting = "PredatorPresent"
